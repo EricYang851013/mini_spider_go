@@ -1,4 +1,4 @@
-package mini_spider
+package scheduler
 
 import (
 	"container/list"
@@ -67,8 +67,7 @@ func (q *Queue) Len() int {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 
-	var len int
-	len = q.tasks.Len()
+	len := q.tasks.Len()
 	
 	return len
 }

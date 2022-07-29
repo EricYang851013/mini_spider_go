@@ -2,11 +2,9 @@ package scheduler
 
 import (
 	"bytes"
+	"regexp"
 	"fmt"
 	"net/url"
-)
-
-import (
 	"golang.org/x/net/html"
 )
 
@@ -16,13 +14,13 @@ Params:
 	- n: html node
 	- refUrl: reference url
 */
-func getLinks(n *html.Node, refUrl *url.URL, links []string) {
+func getLinks(n *html.Node, refUrl *url.URL, links *[]string,urlPattern *regexp.Regexp) {
 	if n.Type == html.ElementNode && n.Data == "a" {
 		for _, a := range n.Attr {
 			if a.Key == "href" {
 				linkUrl, err := refUrl.Parse(a.Val)
-				if err == nil {
-					links = append(links, linkUrl.String())
+				if err == nil && urlPattern.MatchString(linkUrl.String()) {
+					*links = append(*links, linkUrl.String())
 				}
 				break
 			}
@@ -30,9 +28,10 @@ func getLinks(n *html.Node, refUrl *url.URL, links []string) {
 	}
 
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		hl.getLinks(c, refUrl,links)
+		getLinks(c, refUrl, links,urlPattern)
 	}
 }
+
 /*
 get url links in given html page
 Params:
@@ -42,7 +41,7 @@ Returns:
 	- links: parsed links
 	- error: any failure
 */
-func ParseWebPage(data []byte, urlStr string) ([]string, error) {
+func ParseWebPage(data []byte, urlStr string,urlPattern *regexp.Regexp) ([]string, error) {
 	// parse html
 	doc, err := html.Parse(bytes.NewReader(data))
 	if err != nil {
@@ -54,10 +53,10 @@ func ParseWebPage(data []byte, urlStr string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("url.ParseRequestURI(%s):%s", urlStr, err.Error())
 	}
-	
+
 	// get all links
 	var links []string
-	getLinks(doc, refUrl,links)
+	getLinks(doc, refUrl, &links,urlPattern)
 
 	return links, nil
 }

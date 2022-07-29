@@ -1,23 +1,24 @@
 package scheduler
-
+import(
+	"mini_spider/web_package"
+)
 
 type Scheduler struct {
-	config   *Config      //配置信息
-	urlTable *UrlTable    
-	queue    Queue       //任务队列
-	crawlers []*Crawler //线程数
+	config *web_package.Config //配置信息
+	urlTable *UrlTable  //记录已经抓取的url
+	queue    Queue      //任务队列
+	crawlers []*Crawler //抓取线程
 }
 
 // crawl task
 type CrawlTask struct {
-	Url    string             // url to crawl
-	Depth  int                // depth of the url
-	Header map[string]string  // http header
+	Url    string            // url to crawl
+	Depth  int               // depth of the url
+	Header map[string]string // http header
 }
 
-
 // create new mini-spider
-func NewScheduler(conf *Config, seeds []string) (*Scheduler, error) {
+func NewScheduler(conf *web_package.Config, seeds []string) (*Scheduler, error) {
 	scheduler := new(Scheduler)
 	scheduler.config = conf
 
@@ -35,17 +36,22 @@ func NewScheduler(conf *Config, seeds []string) (*Scheduler, error) {
 
 	// create crawlers, thread count was defined in conf
 	scheduler.crawlers = make([]*Crawler, 0)
-	for i := 0; i < conf.ThreadCount; i++ {
+	for i := 0; i < conf.TreadCount; i++ {
 		crawler := NewCrawler(scheduler.urlTable, scheduler.config, &scheduler.queue)
-		scheduler.crawlers = append(ms.crawlers, crawler)
+		scheduler.crawlers = append(scheduler.crawlers, crawler)
 	}
 
-	return ms, nil
+	return scheduler, nil
 }
 
 // run mini spider
 func (ms *Scheduler) Run() {
 	// start all crawlers
+	// //TODO:yangxu
+	// crawler := ms.crawlers[0];
+	// crawler.Run()
+
+
 	for _, crawler := range ms.crawlers {
 		go crawler.Run()
 	}
@@ -56,4 +62,3 @@ func (ms *Scheduler) GetUnfinished() int {
 
 	return ms.queue.GetUnfinished()
 }
-

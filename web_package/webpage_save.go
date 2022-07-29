@@ -13,12 +13,12 @@ const (
 	OutputFileMode = 0644
 )
 
-func pathExit(rootPath string) Bool {
-	if len(rootPath) {
+func pathExit(rootPath string) bool {
+	if len(rootPath) == 0 {
 		return false;
 	}
 	_ , error := os.Stat(rootPath)
-	if !error  {
+	if error == nil  {
 		return true;
 	}
 	return false;
@@ -41,7 +41,7 @@ func genFilePath(urlStr, rootPath string) string {
 
 
 func SaveWebPage(rootPath string, url string, data []byte) error {
-	if len(rootPath) {
+	if len(rootPath) == 0 {
 		return fmt.Errorf("路径为空");
 	}
 		// create root dir, if not exist
